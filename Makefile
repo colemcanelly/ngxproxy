@@ -1,15 +1,16 @@
-# ── App discovery & top-level target ───────────────────────────────
+# ── App discovery, top-level target, and includes ───────────────────────────────
 CONFIG_OUT ?= dist/conf.d
 CUSTOM_OUT ?= dist/custom
 CONFIG ?= config
+CONFIG_FILE := $(CONFIG)/proxy.yaml
 
-CONFIG_FILE = $(CONFIG)/proxy.yaml
+export CONFIG_OUT
+export CUSTOM_OUT
 
 ENVSUBST_VARS := $${APP_HOST} $${APP_UPSTREAM} $${CUSTOM_NGINX_INCLUDE}
 
-APPS := $(shell yq -r '[.[]?.[]?] | flatten | map(.name) | join(" ")' <$(CONFIG_FILE))
+APPS != yq -r '[.[]?.[]?] | flatten | map(.name) | join(" ")' <$(CONFIG_FILE)
 CONFS := $(patsubst %,$(CONFIG_OUT)/%.conf,$(APPS))
-
 ENVS := $(patsubst %,dist/env/%.env,$(APPS))
 DEPS := $(patsubst %,dist/deps/%.d,$(APPS))
 
@@ -34,8 +35,6 @@ dist/deps/%.d: dist/env/%.env
 	  exit 1; \
 	}
 
-export CONFIG_OUT
-export CUSTOM_OUT
 dist/env/%.env &: $(CONFIG_FILE) | dist/env dist/deps
 	@yq -r scripts/parse-config.yq $< | sh
 
