@@ -1,0 +1,25 @@
+
+# Parse the YAML configuration file outputting environment and dependency files for each app.
+["public","private","local"][] as $t
+| (.apps[$t] // [])[]
+| .custom_nginx as $custom_dep
+| ([$custom_dep] + .additional_dependencies // []
+  | select(.)
+  | map(strenv(CUSTOM_OUT) + "/" + .)
+  ) as $deps
+| (
+    select($custom_dep) | "CUSTOM_NGINX_INCLUDE='include " + $custom_dep + ";'"
+  ) // null as $custom_include
+| [
+    "cat << EOF > ./dist/env/" + .name + ".env",
+    "APP_HOST=" + .host,
+    "APP_UPSTREAM=" + .upstream,
+    $custom_include,
+    "EOF",
+    "",
+    "cat << EOF > ./dist/deps/" + .name + ".d",
+    strenv(CONFIG_OUT) + "/" + .name + ".conf: " + (["templates/\($t).conf"] + $deps | join(" ")),
+    "EOF"
+  ]
+| .[]
+| select(.)
