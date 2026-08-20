@@ -29,14 +29,14 @@ $(CONFIG_OUT)/%.conf: dist/env/%.env | $(CONFIG_OUT)
 	 envsubst '$(ENVSUBST_VARS)' < $(filter templates/%,$^) > $@
 
 # ── Dependencies ────────────────────────────────────────────────────
-export CONFIG_OUT
-export CUSTOM_OUT
 dist/deps/%.d: dist/env/%.env
 	@test -s $@ || { \
 	  echo "ERROR: $@ is missing or empty." >&2; \
 	  exit 1; \
 	}
 
+export CONFIG_OUT
+export CUSTOM_OUT
 dist/env/%.env &: $(CONFIG_FILE) | dist/env dist/deps
 	@yq -r scripts/parse-config.yq $< | sh
 
