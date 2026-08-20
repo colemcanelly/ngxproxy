@@ -13,7 +13,6 @@ CONFS := $(patsubst %,$(CONFIG_OUT)/%.conf,$(APPS))
 ENVS := $(patsubst %,dist/env/%.env,$(APPS))
 DEPS := $(patsubst %,dist/deps/%.d,$(APPS))
 
-CUSTOMS := $()
 
 .PHONY: all validate clean help
 .SECONDARY: $(ENVS) $(DEPS)
